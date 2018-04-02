@@ -2,13 +2,12 @@ package com.xteam.crycat.exchange;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.xteam.crycat.constants.Constants;
+import com.xteam.crycat.utils.Constants;
 import com.xteam.crycat.utils.EncryUtils;
 import com.xteam.crycat.utils.HttpUtils;
-import com.xteam.crycat.domain.Account;
-import com.xteam.crycat.domain.Depth;
-import com.xteam.crycat.domain.MarketOrder;
-import com.xteam.crycat.domain.Ticker;
+import com.xteam.crycat.bean.Depth;
+import com.xteam.crycat.bean.MarketOrder;
+import com.xteam.crycat.bean.Ticker;
 import com.xteam.crycat.utils.LogUtils;
 
 import java.util.ArrayList;
@@ -27,13 +26,14 @@ public class BinanceExchangeService extends AbstractExchangeService {
     private Map<String, Object> params;
 
     @Override
-    protected void doInit(Map<String, Object> params, String symbol) {
+    protected void doInit(Map<String, Object> params) {
         if(params.get("apiKey") != null
-                && params.get("apiSecret") != null){
+                && params.get("apiSecret") != null
+                && params.get("symbol") != null){
             this.apiKey = (String)params.get("apiKey");
             this.apiSecret = (String)params.get("apiSecret");
+            this.symbol = (String)params.get("symbol");
         }
-        this.symbol = symbol;
         this.params = params;
     }
 

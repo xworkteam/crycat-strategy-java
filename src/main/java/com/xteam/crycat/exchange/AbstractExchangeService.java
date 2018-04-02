@@ -1,8 +1,5 @@
 package com.xteam.crycat.exchange;
 
-import com.xteam.crycat.domain.*;
-
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -16,8 +13,8 @@ import java.util.Map;
 public abstract class AbstractExchangeService implements ExchangeService {
 
     @Override
-    public void init(Map<String, Object> params, String symbol) {
-        doInit(params, symbol);
+    public void init(Map<String, Object> params) {
+        doInit(params);
     }
 
     @Override
@@ -74,7 +71,8 @@ public abstract class AbstractExchangeService implements ExchangeService {
     public String withdraw(Double amount, String address) {
         return doWithdraw(amount, address);
     }
-    protected abstract void doInit(Map<String, Object> params, String symbol);
+
+    protected abstract void doInit(Map<String, Object> params);
 
     protected abstract String doGetDepth();
 

@@ -1,4 +1,4 @@
-package com.xteam.crycat.domain;
+package com.xteam.crycat.bean;
 
 /**
  * @description 账户信息

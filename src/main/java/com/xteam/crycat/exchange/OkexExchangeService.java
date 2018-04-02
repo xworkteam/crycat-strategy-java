@@ -1,9 +1,5 @@
 package com.xteam.crycat.exchange;
 
-import com.xteam.crycat.domain.Account;
-import com.xteam.crycat.domain.Depth;
-import com.xteam.crycat.domain.Ticker;
-
 import java.util.List;
 import java.util.Map;
 
@@ -14,7 +10,7 @@ public class OkexExchangeService extends AbstractExchangeService {
     private String apiKey;
 
     @Override
-    protected void doInit(Map<String, Object> params, List<String> symbols) {
+    protected void doInit(Map<String, Object> params) {
         this.apiKey = apiKey;
         this.apiSecret = apiSecret;
     }

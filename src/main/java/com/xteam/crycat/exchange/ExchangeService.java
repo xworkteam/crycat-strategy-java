@@ -1,8 +1,5 @@
 package com.xteam.crycat.exchange;
 
-import com.xteam.crycat.domain.*;
-
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -15,7 +12,7 @@ import java.util.Map;
  */
 public interface ExchangeService {
 
-  void init(Map<String, Object> params, String symbols);
+  void init(Map<String, Object> params);
   /**
    * @description 获取市场当前行情
    * @author alyenc
