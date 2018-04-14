@@ -1,9 +1,7 @@
 package com.xteam.crycat.strategy;
 
-import com.xteam.crycat.thrift.RobotExchange;
-import com.xteam.crycat.thrift.RobotStrategy;
-
 import java.util.List;
+import java.util.Map;
 
 /**
  * @description 量化策略接口
@@ -15,13 +13,15 @@ import java.util.List;
  */
 public interface StrategyService {
 
-    void initEngine(List<RobotExchange> exchanges, RobotStrategy strategy);
-    /**
-     * @description 开始执行策略-策略入口
-     * @author alyenc
-     * @date 2018/2/1 下午1:53
-     */
-    String start();
+    void create(Map<String, String> params);
 
-    void exit();
+    void start(Map<String, String> params);
+
+    void stop(Map<String, String> params);
+
+    void snapshot(Map<String, String> params);
+
+    void suspend(Map<String, String> params);
+
+    void resume(Map<String, String> params);
 }

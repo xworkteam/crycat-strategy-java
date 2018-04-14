@@ -1,5 +1,6 @@
 package com.xteam.crycat;
 
+import com.xteam.crycat.thrift.ThriftServer;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 

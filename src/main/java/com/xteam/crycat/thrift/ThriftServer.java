@@ -1,5 +1,6 @@
 package com.xteam.crycat.thrift;
 
+import com.xteam.crycat.remote.RemoteServiceImpl;
 import com.xteam.crycat.robot.RobotServiceImpl;
 import org.apache.thrift.TProcessorFactory;
 import org.apache.thrift.protocol.TCompactProtocol;
@@ -13,7 +14,7 @@ public class ThriftServer {
         TNonblockingServerSocket socket = new TNonblockingServerSocket(8899);
 
         THsHaServer.Args arg = new THsHaServer.Args(socket).minWorkerThreads(2).maxWorkerThreads(4);
-        RobotService.Processor<RobotServiceImpl> processor = new RobotService.Processor<>(new RobotServiceImpl());
+        RemoteService.Processor<RemoteServiceImpl> processor = new RemoteService.Processor<>(new RemoteServiceImpl());
 
         arg.protocolFactory(new TCompactProtocol.Factory());
         arg.transportFactory(new TFramedTransport.Factory());
