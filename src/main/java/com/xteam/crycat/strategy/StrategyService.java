@@ -1,5 +1,7 @@
 package com.xteam.crycat.strategy;
 
+import com.xteam.crycat.thrift.Response;
+
 import java.util.List;
 import java.util.Map;
 
@@ -13,15 +15,17 @@ import java.util.Map;
  */
 public interface StrategyService {
 
-    void create(Map<String, String> params);
+    Response create(String params);
 
-    void start(Map<String, String> params);
+    Response start(String params);
 
-    void stop(Map<String, String> params);
+    Response stop(String params);
 
-    void snapshot(Map<String, String> params);
+    Response snapshot(String params);
 
-    void suspend(Map<String, String> params);
+    Response suspend(String params);
 
-    void resume(Map<String, String> params);
+    Response resume(String params);
+
+    Response resumeFromSnap(String params);
 }

@@ -1,7 +1,6 @@
 package com.xteam.crycat.thrift;
 
 import com.xteam.crycat.remote.RemoteServiceImpl;
-import com.xteam.crycat.robot.RobotServiceImpl;
 import org.apache.thrift.TProcessorFactory;
 import org.apache.thrift.protocol.TCompactProtocol;
 import org.apache.thrift.server.THsHaServer;

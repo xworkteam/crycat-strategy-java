@@ -1,49 +1,57 @@
 package com.xteam.crycat.strategy;
 
-import java.util.List;
+import com.xteam.crycat.thrift.Response;
+
 import java.util.Map;
 
 public abstract class AbstractStrategyService implements StrategyService {
 
     @Override
-    public void create(Map<String, String> params) {
-        doCreate(params);
+    public Response create(String params) {
+        return doCreate(params);
     }
 
     @Override
-    public void start(Map<String, String> params) {
-        doStart(params);
+    public Response start(String params) {
+        return doStart(params);
     }
 
     @Override
-    public void stop(Map<String, String> params) {
-        doStop(params);
+    public Response stop(String params) {
+        return doStop(params);
     }
 
     @Override
-    public void suspend(Map<String, String> params) {
-        doSuspend(params);
+    public Response suspend(String params) {
+        return doSuspend(params);
     }
 
     @Override
-    public void resume(Map<String, String> params) {
-        doResume(params);
+    public Response resume(String params) {
+        return doResume(params);
     }
 
     @Override
-    public void snapshot(Map<String, String> params) {
-        doSnapshot(params);
+    public Response snapshot(String params) {
+        return doSnapshot(params);
     }
 
-    protected abstract void doCreate(Map<String, String> params);
+    @Override
+    public Response resumeFromSnap(String params) {
+        return doResumeFromSnap(params);
+    }
 
-    protected abstract void doStart(Map<String, String> params);
+    protected abstract Response doResumeFromSnap(String params);
 
-    protected abstract void doStop(Map<String, String> params);
+    protected abstract Response doCreate(String params);
 
-    protected abstract void doSuspend(Map<String, String> params);
+    protected abstract Response doStart(String params);
 
-    protected abstract void doResume(Map<String, String> params);
+    protected abstract Response doStop(String params);
 
-    protected abstract void doSnapshot(Map<String, String> params);
+    protected abstract Response doSuspend(String params);
+
+    protected abstract Response doResume(String params);
+
+    protected abstract Response doSnapshot(String params);
 }

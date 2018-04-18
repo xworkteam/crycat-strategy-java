@@ -1,9 +1,9 @@
 namespace java com.xteam.crycat.thrift.generated
 
 struct Response {
-    1: required bool isSuccess;
+    1: required bool success;
 
-    2: required string data;
+    2: optional string data;
 
     3: required string msg;
 
@@ -16,7 +16,7 @@ struct Request {
     1: required string method;
 
     //方法参数
-    2: required map<string, string> params;
+    2: required string params;
 }
 
 service RemoteService {
