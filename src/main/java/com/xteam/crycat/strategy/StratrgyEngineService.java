@@ -1,15 +1,32 @@
 package com.xteam.crycat.strategy;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
 import com.xteam.crycat.base.RespEnums;
 import com.xteam.crycat.base.StatusEnums;
+import com.xteam.crycat.base.StrategyEnums;
+import com.xteam.crycat.bean.Exchange;
 import com.xteam.crycat.compiler.StrategyCompiler;
+import com.xteam.crycat.strategy.code.BaseStrategyCode;
 import com.xteam.crycat.thrift.Response;
 import com.xteam.crycat.utils.FileUtils;
+import javassist.*;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import static com.xteam.crycat.base.Constants.*;
 
@@ -25,18 +42,20 @@ public class StratrgyEngineService extends AbstractStrategyService {
     //参数缓存
     private Map<String, String> initCache = new ConcurrentHashMap<>();
     //执行类缓存
-    private Map<String, Class<?>> classCache = new ConcurrentHashMap<>();
+    private Map<String, BaseStrategyCode> objectCache = new ConcurrentHashMap<>();
     //策略实例状态缓存
     private Map<String, Integer> statusCache = new ConcurrentHashMap<>();
     //快照缓存
     private Map<String, String> snapShotCache = new ConcurrentHashMap<>();
-
+    //策略执行体缓存
     private Map<String, StrategyExecutor> executorCache = new ConcurrentHashMap<>();
+
+    private ClassPool pool = ClassPool.getDefault();
 
     @Override
     protected Response doCreate(String params) {
         Response resp = new Response();
-
+        System.out.println(params);
         //转换参数
         JSONObject json = JSONObject.parseObject(params);
         //策略实例ID，是执行中策略的唯一标识
@@ -51,32 +70,40 @@ public class StratrgyEngineService extends AbstractStrategyService {
             return resp;
         }
 
-        //初始化策略类
-        JSONObject strategy = json.getJSONObject("strategy");
+        //获取交易所配置
+        String exchStr = json.getString("exchanges");
+        if(exchStr == null){
+            resp.setCode(RespEnums.EXCHANGES_CONFIG_ERROR.getCode());
+            resp.setMsg(RespEnums.EXCHANGES_CONFIG_ERROR.getMsg());
+            resp.setSuccess(false);
+            return resp;
+        }
+
+        //获取策略配置
+        String strategy = json.getString("strategy");
         if(strategy == null){
-            resp.setCode(RespEnums.STRATEGY_PARAMS_ERROR.getCode());
-            resp.setMsg(RespEnums.STRATEGY_PARAMS_ERROR.getMsg());
+            resp.setCode(RespEnums.STRATEGY_CONFIG_ERROR.getCode());
+            resp.setMsg(RespEnums.STRATEGY_CONFIG_ERROR.getMsg());
             resp.setSuccess(false);
             return resp;
         }
-
-        String code = strategy.getString("code");    //策略代码
-        if(code == null) {
-            resp.setCode(RespEnums.PARAMS_STRATEGY_CODE.getCode());
-            resp.setMsg(RespEnums.PARAMS_STRATEGY_CODE.getMsg());
-            resp.setSuccess(false);
-            return resp;
+        //创建策略类
+        try {
+            Class<?> straClass = createStrategyClass(strategy);   //创建策略类
+            if(straClass == null){
+                resp.setCode(RespEnums.STRATEGY_CONFIG_ERROR.getCode());
+                resp.setMsg(RespEnums.STRATEGY_CONFIG_ERROR.getMsg());
+                resp.setSuccess(false);
+                return resp;
+            }
+            Exchange[] exchanges = initExchanges(exchStr);
+            BaseStrategyCode baseStra = (BaseStrategyCode) straClass.newInstance();
+            baseStra.init(exchanges);
+            StrategyExecutor executor = new StrategyExecutor(id, baseStra);
+            executorCache.putIfAbsent(EXECUTOR_CACHE_PREFIX + id, executor);
+        } catch(Exception e){
+            e.printStackTrace();
         }
-
-        StrategyCompiler compiler = new StrategyCompiler(code);
-        compiler.compile();
-
-        //缓存执行类
-        classCache.putIfAbsent(CLASS_CACHE_PREFIX + id, compiler.getClazz());
-
-        //缓存执行者
-        StrategyExecutor exector = new StrategyExecutor(id, compiler.getClazz());
-        executorCache.putIfAbsent(EXECUTOR_CACHE_PREFIX + id, exector);
 
         //将参数放入缓存，初始化参数，并持久化参数
         initCache.putIfAbsent(INIT_CACHE_PREFIX + id, params);
@@ -84,7 +111,6 @@ public class StratrgyEngineService extends AbstractStrategyService {
 
         //保存状态
         saveStatus(id, StatusEnums.CREATED.getCode());
-
         resp.setCode(RespEnums.OK.getCode());
         resp.setMsg(RespEnums.OK.getMsg());
         resp.setData(id);
@@ -96,7 +122,6 @@ public class StratrgyEngineService extends AbstractStrategyService {
     @Override
     protected Response doStart(String params) {
         Response resp = new Response();
-
         //转换参数
         JSONObject json = JSONObject.parseObject(params);
         //策略实例ID，是执行中策略的唯一标识
@@ -128,7 +153,7 @@ public class StratrgyEngineService extends AbstractStrategyService {
 
         //清理缓存
         initCache.remove(INIT_CACHE_PREFIX + id);
-        classCache.remove(CLASS_CACHE_PREFIX + id);
+        objectCache.remove(CLASS_CACHE_PREFIX + id);
         statusCache.remove(STATUS_CACHE_PREFIX + id);
         executorCache.remove(EXECUTOR_CACHE_PREFIX + id);
 
@@ -146,7 +171,6 @@ public class StratrgyEngineService extends AbstractStrategyService {
     @Override
     protected Response doSuspend(String params) {
         Response resp = new Response();
-
         //转换参数
         JSONObject json = JSONObject.parseObject(params);
         //策略实例ID，是执行中策略的唯一标识
@@ -213,5 +237,74 @@ public class StratrgyEngineService extends AbstractStrategyService {
         jsonObject.put("id", id);
         jsonObject.put("status", status);
         FileUtils.writeText("conf" + File.separator + STATUS_CACHE_PREFIX + id, jsonObject.toJSONString(), false);
+    }
+
+    /**
+     * @description 生成工具类，作为桥，调用策略类
+     * @author alyenc
+     * @date 2018/4/20 下午3:41
+     * @param
+     * @return
+     */
+    public Class<?> createStrategyClass(String strategy){
+        JSONObject straJSON = JSON.parseObject(strategy);
+        String code = straJSON.getString("code");
+        if(code == null){
+           return null;
+        }
+        JSONArray straParams = straJSON.getJSONArray("params");
+        if(straParams == null){
+            return null;
+        }
+        StringBuilder straParamsStr = new StringBuilder();
+        straParams.forEach(item -> {
+            JSONObject itemJSON = (JSONObject) (item);
+            String desc = itemJSON.getString("desc");
+            String key = itemJSON.getString("key");
+            String type = itemJSON.getString("type");
+            String value = itemJSON.getString("value");
+            straParamsStr.append("private static ")
+                    .append(type).append(" ").append(key).append(" = ").append(value)
+                    .append(";").append("    ").append("//").append(desc).append("\n");
+
+        });
+
+        StringBuilder newCode = new StringBuilder();
+        newCode.append("import com.xteam.crycat.bean.Exchange;\n");
+        newCode.append("import com.xteam.crycat.strategy.code.BaseStrategyCode;\n");
+        newCode.append("public class StrategyBridge implements BaseStrategyCode{ \n");
+
+        newCode.append(straParamsStr);
+        newCode.append("    private Exchange[] exchanges = null;\n");
+
+        newCode.append("    @Override\n");
+        newCode.append("    public void init(Exchange[] exchanges) { \n");
+        newCode.append("        this.exchanges = exchanges;\n");
+        newCode.append("    } \n");
+
+        newCode.append("    @Override\n");
+        newCode.append("    public void execute() { \n");
+        newCode.append("        new StrategyCode().main();\n");
+        newCode.append("    } \n");
+        newCode.append(code);
+        newCode.append("} \n");
+        System.out.println(newCode);
+
+        StrategyCompiler compiler = new StrategyCompiler(newCode.toString());
+        compiler.compile();
+        return compiler.getClazz();
+    }
+
+    private Exchange[] initExchanges(String exchParams){
+        JSONArray exchJSON = JSON.parseArray(exchParams);
+        List<Exchange> exchanges = new ArrayList<>();
+        exchJSON.forEach(item -> {
+            Map<String, Object> params = JSONObject.parseObject(JSONObject.toJSON(item).toString(), new TypeReference<Map<String, Object>>(){});
+            Exchange exchange = new Exchange(params);
+            exchange.init();
+            exchanges.add(exchange);
+        });
+
+        return exchanges.toArray(new Exchange[0]);
     }
 }

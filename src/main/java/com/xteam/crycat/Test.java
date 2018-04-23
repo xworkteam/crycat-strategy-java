@@ -3,12 +3,21 @@ package com.xteam.crycat;
 import com.xteam.crycat.base.StrategyEnums;
 import com.xteam.crycat.strategy.StrategyService;
 
+import java.lang.reflect.Field;
+
 public class Test {
 
-    public static void main(String[] args) {
-        StrategyService s1 = StrategyEnums.INSTANCE.getInstance();
-        StrategyService s2 = StrategyEnums.INSTANCE.getInstance();
+    private String test;
 
-        System.out.println(s1 == s2);
+    public static void main(String[] args) {
+
+
+    }
+
+
+    class Strategy{
+        public void name(){
+            test.indexOf(1);
+        }
     }
 }

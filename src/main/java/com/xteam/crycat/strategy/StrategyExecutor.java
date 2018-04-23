@@ -1,17 +1,18 @@
 package com.xteam.crycat.strategy;
 
-import java.lang.reflect.Method;
+import com.xteam.crycat.strategy.code.BaseStrategyCode;
 
 public class StrategyExecutor implements Runnable {
 
     private Thread thread;
     private String name;
-    private final Class<?> clazz;
+    private final BaseStrategyCode strategy;
     private volatile boolean suspended = false;
     private volatile boolean running = true;
-    public StrategyExecutor(String name, Class<?> clazz){
+
+    public StrategyExecutor(String name, BaseStrategyCode strategy){
         this.name = name;
-        this.clazz = clazz;
+        this.strategy = strategy;
     }
 
     @Override
@@ -24,8 +25,7 @@ public class StrategyExecutor implements Runnable {
                     }
                     try {
                         Thread.sleep(1000);
-                        Method method = clazz.getMethod("main");
-                        method.invoke(clazz.newInstance());
+                        strategy.execute();
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -37,9 +37,8 @@ public class StrategyExecutor implements Runnable {
     }
 
     public void start(){
-        System.out.println("Starting " +  name );
         if(thread==null){
-            thread=new Thread(this, name);
+            thread = new Thread(this, name);
             thread.start();
         }
     }
