@@ -1,6 +1,7 @@
 package com.xteam.crycat.utils;
 
 
+import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.*;
 import org.apache.http.client.HttpClient;
@@ -12,18 +13,27 @@ import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.conn.ConnectionKeepAliveStrategy;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultConnectionKeepAliveStrategy;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
+import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.protocol.HttpContext;
 
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+
+import static sun.security.x509.X509CertInfo.KEY;
 
 public class HttpUtils {
 
@@ -92,7 +102,6 @@ public class HttpUtils {
             }
         }
 
-        System.out.println(url);
         HttpRequestBase method = this.httpGetMethod(url);
 
         if(headers != null){
@@ -136,7 +145,6 @@ public class HttpUtils {
         UrlEncodedFormEntity urlEncodedFormEntity = new UrlEncodedFormEntity(valuePairs, Consts.UTF_8);
         method.setEntity(urlEncodedFormEntity);
         method.setConfig(requestConfig);
-        System.out.println(method);
 
         if(headers != null){
             for (Map.Entry<String, String> entry : headers.entrySet()) {
@@ -225,70 +233,68 @@ public class HttpUtils {
     }
 
 
-//    public String doRequest( String api, String requestType, String url, Map<String, String> arguments ) throws HttpException, IOException{
-//        List< NameValuePair > urlParameters = new ArrayList< NameValuePair >( );
-//
-//        Mac mac = null;
-//        SecretKeySpec key = null;
-//        StringBuilder postData = new StringBuilder();
-//        for (Map.Entry<String, String> argument : arguments.entrySet()) {
-//            urlParameters.add(new BasicNameValuePair(argument.getKey(), argument.getValue()));
-//            if (postData.length() > 0) {
-//                postData.append("&");
-//            }
-//            postData.append(argument.getKey()).append("=").append(argument.getValue());
-//        }
-//
-//        // Create a new secret key
-//        try {
-//            key = new SecretKeySpec( SECRET.getBytes( "UTF-8" ), "HmacSHA512" );
-//        } catch ( UnsupportedEncodingException uee ) {
-//            System.err.println( "Unsupported encoding exception: " + uee.toString( ) );
-//        }
-//
-//        try {
-//            mac = Mac.getInstance( "HmacSHA512" );
-//        } catch ( NoSuchAlgorithmException nsae ) {
-//            System.err.println( "No such algorithm exception: " + nsae.toString( ) );
-//        }
-//
-//        try {
-//            mac.init(key);
-//        } catch ( InvalidKeyException ike ) {
-//            System.err.println( "Invalid key exception: " + ike.toString( ));
-//        }
-//
-//        // add header
-//        Header[] headers = new Header[ 2 ];
-//        headers[ 0 ] = new BasicHeader( "Key", KEY );
-//        headers[ 1 ] = new BasicHeader( "Sign", Hex.encodeHexString(mac.doFinal(postData.toString().getBytes( "UTF-8" ))));
-//
-//
-//        HttpClient client = HttpClientBuilder.create( ).build( );
-//        HttpPost post = null;
-//        HttpGet get = null;
-//        HttpResponse response = null;
-//
-//        if ( requestType == "post" ) {
-//            post = new HttpPost( url );
-//            post.setEntity( new UrlEncodedFormEntity( urlParameters ) );
-//            post.setHeaders( headers );
-//            response = client.execute( post );
-//        } else if ( requestType == "get" ) {
-//            get = new HttpGet( url );
-//            get.setHeaders( headers );
-//            response = client.execute( get );
-//        }
-//
-//        HttpEntity entity =  response.getEntity();
-//        if(entity == null){
-//            return "";
-//        }
-//        InputStream is = null;
-//        String responseData = "";
-//
-//        is = entity.getContent();
-//        responseData = IOUtils.toString(is, "UTF-8");
-//        return responseData;
-//    }
+    public String doRequest( String api, String requestType, String url, Map<String, String> arguments, String apiKey, String apiSecret) throws HttpException, IOException{
+        List< NameValuePair > urlParameters = new ArrayList< NameValuePair >( );
+
+        Mac mac = null;
+        SecretKeySpec key = null;
+        StringBuilder postData = new StringBuilder();
+        for (Map.Entry<String, String> argument : arguments.entrySet()) {
+            urlParameters.add(new BasicNameValuePair(argument.getKey(), argument.getValue()));
+            if (postData.length() > 0) {
+                postData.append("&");
+            }
+            postData.append(argument.getKey()).append("=").append(argument.getValue());
+        }
+        try {
+            key = new SecretKeySpec(apiSecret.getBytes( "UTF-8" ), "HmacSHA512" );
+        } catch ( UnsupportedEncodingException uee ) {
+            System.err.println( "Unsupported encoding exception: " + uee.toString( ) );
+        }
+
+        try {
+            mac = Mac.getInstance( "HmacSHA512" );
+        } catch ( NoSuchAlgorithmException nsae ) {
+            System.err.println( "No such algorithm exception: " + nsae.toString( ) );
+        }
+
+        try {
+            mac.init(key);
+        } catch ( InvalidKeyException ike ) {
+            System.err.println( "Invalid key exception: " + ike.toString( ));
+        }
+
+        // add header
+        Header[] headers = new Header[ 2 ];
+        headers[ 0 ] = new BasicHeader( "Key", apiKey );
+        headers[ 1 ] = new BasicHeader( "Sign", Hex.encodeHexString(mac.doFinal(postData.toString().getBytes( "UTF-8" ))));
+
+
+        HttpClient client = HttpClientBuilder.create( ).build( );
+        HttpPost post = null;
+        HttpGet get = null;
+        HttpResponse response = null;
+
+        if ( requestType == "post" ) {
+            post = new HttpPost( url );
+            post.setEntity( new UrlEncodedFormEntity( urlParameters ) );
+            post.setHeaders( headers );
+            response = client.execute( post );
+        } else if ( requestType == "get" ) {
+            get = new HttpGet( url );
+            get.setHeaders( headers );
+            response = client.execute( get );
+        }
+
+        HttpEntity entity =  response.getEntity();
+        if(entity == null){
+            return "";
+        }
+        InputStream is = null;
+        String responseData = "";
+
+        is = entity.getContent();
+        responseData = IOUtils.toString(is, "UTF-8");
+        return responseData;
+    }
 }

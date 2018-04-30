@@ -1,5 +1,11 @@
 package com.xteam.crycat.exchange;
 
+import com.xteam.crycat.bean.Account;
+import com.xteam.crycat.bean.MarketInfo;
+import com.xteam.crycat.bean.Ticker;
+import com.xteam.crycat.bean.Trade;
+
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -38,17 +44,17 @@ public abstract class AbstractExchangeService implements ExchangeService {
     }
 
     @Override
-    public String getTickers() {
+    public Ticker getTickers() {
         return doGetTickers();
     }
 
     @Override
-    public String getTrades() {
-        return null;
+    public List<Trade> getTrades() {
+        return doGetTrades();
     }
 
     @Override
-    public String getAccount() {
+    public List<Account> getAccount() {
         return doGetAccount();
     }
 
@@ -72,13 +78,20 @@ public abstract class AbstractExchangeService implements ExchangeService {
         return doWithdraw(amount, address);
     }
 
+    @Override
+    public List<MarketInfo> getMarketInfo() {
+        return doGetMarketInfo();
+    }
+
     protected abstract void doInit(Map<String, Object> params);
 
     protected abstract String doGetDepth();
 
-    protected abstract String doGetAccount();
+    protected abstract List<Account> doGetAccount();
 
-    protected abstract String doGetTickers();
+    protected abstract Ticker doGetTickers();
+
+    protected abstract List<Trade> doGetTrades();
 
     protected abstract String doBuy(Double amount, Double price);
 
@@ -86,5 +99,6 @@ public abstract class AbstractExchangeService implements ExchangeService {
 
     protected abstract String doWithdraw(Double amount, String address);
 
+    protected abstract List<MarketInfo> doGetMarketInfo();
 
 }

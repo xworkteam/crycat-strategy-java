@@ -3,6 +3,7 @@ package com.xteam.crycat.bean;
 import com.xteam.crycat.base.ExchangeEnums;
 import com.xteam.crycat.exchange.ExchangeService;
 
+import java.util.List;
 import java.util.Map;
 
 public class Exchange {
@@ -28,7 +29,7 @@ public class Exchange {
      * @param
      * @return Ticker
      */
-    public String getTickers(){
+    public Ticker getTickers(){
         return exchangeService.getTickers();
     }
 
@@ -49,7 +50,7 @@ public class Exchange {
      * @param
      * @return Trade
      */
-    public String getTrades(){
+    public List<Trade> getTrades(){
         return exchangeService.getTrades();
     }
 
@@ -126,7 +127,7 @@ public class Exchange {
      * @date 2018/2/2 上午10:32
      * @return Account
      */
-    public String getAccount(){
+    public List<Account> getAccount(){
         return exchangeService.getAccount();
     }
 
@@ -140,5 +141,9 @@ public class Exchange {
      */
     public String withdraw(Double amount, String address){
         return exchangeService.withdraw(amount, address);
+    }
+
+    public List<MarketInfo> getMarketInfo(){
+        return exchangeService.getMarketInfo();
     }
 }

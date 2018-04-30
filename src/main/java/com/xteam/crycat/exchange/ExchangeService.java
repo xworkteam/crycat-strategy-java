@@ -1,5 +1,11 @@
 package com.xteam.crycat.exchange;
 
+import com.xteam.crycat.bean.Account;
+import com.xteam.crycat.bean.MarketInfo;
+import com.xteam.crycat.bean.Ticker;
+import com.xteam.crycat.bean.Trade;
+
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -20,7 +26,7 @@ public interface ExchangeService {
    * @param
    * @return Ticker
    */
-  String getTickers();
+  Ticker getTickers();
 
   /**
    * @description 获取市场深度
@@ -37,7 +43,7 @@ public interface ExchangeService {
    * @param
    * @return Trade
    */
-  String getTrades();
+  List<Trade> getTrades();
 
   /**
    * @description 获取交易所返回原始字符串
@@ -100,7 +106,7 @@ public interface ExchangeService {
    * @date 2018/2/2 上午10:32
    * @return Account
    */
-  String getAccount();
+  List<Account> getAccount();
 
   /**
    * @description 提现
@@ -111,5 +117,15 @@ public interface ExchangeService {
    * @return String
    */
   String withdraw(Double amount, String address);
+
+
+  /**
+   * @description
+   * @author alyenc
+   * @date 2018/4/24 10:24
+   * @param
+   * @return
+   */
+  List<MarketInfo> getMarketInfo();
 
 }

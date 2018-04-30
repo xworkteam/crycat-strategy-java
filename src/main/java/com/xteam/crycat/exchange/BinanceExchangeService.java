@@ -2,12 +2,10 @@ package com.xteam.crycat.exchange;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.xteam.crycat.bean.*;
 import com.xteam.crycat.utils.Constants;
 import com.xteam.crycat.utils.EncryUtils;
 import com.xteam.crycat.utils.HttpUtils;
-import com.xteam.crycat.bean.Depth;
-import com.xteam.crycat.bean.MarketOrder;
-import com.xteam.crycat.bean.Ticker;
 import com.xteam.crycat.utils.LogUtils;
 
 import java.util.ArrayList;
@@ -84,12 +82,17 @@ public class BinanceExchangeService extends AbstractExchangeService {
     }
 
     @Override
-    protected String doGetAccount() {
+    protected List<Account> doGetAccount() {
         return null;
     }
 
     @Override
-    protected String doGetTickers() {
+    protected List<Trade> doGetTrades() {
+        return null;
+    }
+
+    @Override
+    protected Ticker doGetTickers() {
         Ticker ticker = new Ticker();
         HttpUtils httpUtils = HttpUtils.getInstance();
 
@@ -110,8 +113,7 @@ public class BinanceExchangeService extends AbstractExchangeService {
         } catch(Exception e) {
             e.printStackTrace();
         }
-        String json = JSONObject.toJSONString(ticker);
-        return json;
+        return ticker;
     }
 
     @Override
@@ -231,6 +233,11 @@ public class BinanceExchangeService extends AbstractExchangeService {
         } catch(Exception e) {
             e.printStackTrace();
         }
+        return null;
+    }
+
+    @Override
+    protected List<MarketInfo> doGetMarketInfo() {
         return null;
     }
 

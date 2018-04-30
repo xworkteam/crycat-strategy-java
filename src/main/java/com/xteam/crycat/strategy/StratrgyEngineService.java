@@ -10,14 +10,12 @@ import com.xteam.crycat.base.StrategyEnums;
 import com.xteam.crycat.bean.Exchange;
 import com.xteam.crycat.compiler.StrategyCompiler;
 import com.xteam.crycat.strategy.code.BaseStrategyCode;
+import com.xteam.crycat.strategy.code.StrategyBridge;
 import com.xteam.crycat.thrift.Response;
 import com.xteam.crycat.utils.FileUtils;
 import javassist.*;
 
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -28,7 +26,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import static com.xteam.crycat.base.Constants.*;
+import static com.xteam.crycat.utils.Constants.*;
 
 /**
  * @description 策略代码执行引擎
@@ -39,6 +37,7 @@ import static com.xteam.crycat.base.Constants.*;
  * @version v1.2.0
  */
 public class StratrgyEngineService extends AbstractStrategyService {
+
     //参数缓存
     private Map<String, String> initCache = new ConcurrentHashMap<>();
     //执行类缓存
@@ -49,8 +48,6 @@ public class StratrgyEngineService extends AbstractStrategyService {
     private Map<String, String> snapShotCache = new ConcurrentHashMap<>();
     //策略执行体缓存
     private Map<String, StrategyExecutor> executorCache = new ConcurrentHashMap<>();
-
-    private ClassPool pool = ClassPool.getDefault();
 
     @Override
     protected Response doCreate(String params) {
@@ -306,5 +303,40 @@ public class StratrgyEngineService extends AbstractStrategyService {
         });
 
         return exchanges.toArray(new Exchange[0]);
+    }
+
+    public static void main(String[] args) {
+        //redirectSystemOut();
+        String str = "[{\"name\":\"gate\", \"apiKey\":\"\",\"apiSecret\":\"\",\"symbol\":\"theta_usdt\"}]";
+        Exchange[] exchanges = new StratrgyEngineService().initExchanges(str);
+        BaseStrategyCode baseStra = new StrategyBridge();
+        baseStra.init(exchanges);
+        baseStra.execute();
+//        new Thread(() -> {
+//            while (true) {
+//                synchronized (baseStra) {
+//                    try {
+//                        baseStra.execute();
+//                        Thread.sleep(30000);
+//                    } catch (Exception e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//            }
+//        }).start();
+    }
+
+    /**
+     *将System.out重定向到文件
+     *
+     */
+    public static void redirectSystemOut() {
+        try {
+            System.setOut(new PrintStream(new FileOutputStream("/Users/mikechen/system.log")));
+        } catch (FileNotFoundException ex) {
+            ex.printStackTrace();
+            return;
+        }
+        System.out.println("This won't get displayed on the console, but sent to the file system_out.txt");
     }
 }

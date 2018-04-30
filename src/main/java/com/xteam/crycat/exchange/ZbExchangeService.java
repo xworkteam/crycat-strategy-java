@@ -2,9 +2,7 @@ package com.xteam.crycat.exchange;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.xteam.crycat.bean.Depth;
-import com.xteam.crycat.bean.Ticker;
-import com.xteam.crycat.bean.MarketOrder;
+import com.xteam.crycat.bean.*;
 import com.xteam.crycat.utils.Constants;
 import com.xteam.crycat.utils.EncryUtils;
 import com.xteam.crycat.utils.HttpUtils;
@@ -80,7 +78,7 @@ public class ZbExchangeService extends AbstractExchangeService {
     }
 
     @Override
-    protected String doGetTickers() {
+    protected Ticker doGetTickers() {
         HttpUtils httpUtils = HttpUtils.getInstance();
         Ticker ticker = new Ticker();
         StringBuilder param = new StringBuilder();
@@ -104,12 +102,16 @@ public class ZbExchangeService extends AbstractExchangeService {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        String json = JSONObject.toJSONString(ticker);
-        return json;
+        return ticker;
     }
 
     @Override
-    protected String doGetAccount() {
+    protected List<Account> doGetAccount() {
+        return null;
+    }
+
+    @Override
+    protected List<Trade> doGetTrades() {
         return null;
     }
 
@@ -213,6 +215,11 @@ public class ZbExchangeService extends AbstractExchangeService {
         } catch(Exception e) {
             e.printStackTrace();
         }
+        return null;
+    }
+
+    @Override
+    protected List<MarketInfo> doGetMarketInfo() {
         return null;
     }
 }

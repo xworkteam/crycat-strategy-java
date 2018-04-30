@@ -1,5 +1,10 @@
 package com.xteam.crycat.exchange;
 
+import com.xteam.crycat.bean.Account;
+import com.xteam.crycat.bean.MarketInfo;
+import com.xteam.crycat.bean.Ticker;
+import com.xteam.crycat.bean.Trade;
+
 import java.util.List;
 import java.util.Map;
 
@@ -40,7 +45,7 @@ public class HuoBiExchangeService extends AbstractExchangeService {
     }
 
     @Override
-    protected String doGetTickers() {
+    protected Ticker doGetTickers() {
         return null;
     }
 
@@ -60,7 +65,17 @@ public class HuoBiExchangeService extends AbstractExchangeService {
     }
 
     @Override
-    protected String doGetAccount() {
+    protected List<Account> doGetAccount() {
+        return null;
+    }
+
+    @Override
+    protected List<Trade> doGetTrades() {
+        return null;
+    }
+
+    @Override
+    protected List<MarketInfo> doGetMarketInfo() {
         return null;
     }
 }
